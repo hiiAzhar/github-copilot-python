@@ -106,6 +106,7 @@ def check_solution():
         for j in range(sudoku_logic.SIZE):
             value = board[i][j]
             if value == sudoku_logic.EMPTY:
+                incorrect.append([i, j])
                 completed = False
             elif value != solution[i][j]:
                 incorrect.append([i, j])

@@ -154,6 +154,34 @@ def test_check_solution_highlights_only_incorrect_entered_cells():
     }
 
 
+def test_check_solution_includes_empty_and_incorrect_cells_only():
+    client = app.test_client()
+    client.get('/new?difficulty=easy')
+    board = sudoku_logic.deep_copy(CURRENT['solution'])
+    empty_cells = [
+        (row, col)
+        for row in range(sudoku_logic.SIZE)
+        for col in range(sudoku_logic.SIZE)
+        if CURRENT['puzzle'][row][col] == sudoku_logic.EMPTY
+    ]
+    empty_cell, incorrect_cell = empty_cells[:2]
+    incorrect_row, incorrect_col = incorrect_cell
+    board[empty_cell[0]][empty_cell[1]] = sudoku_logic.EMPTY
+    board[incorrect_row][incorrect_col] = next(
+        value
+        for value in range(1, sudoku_logic.SIZE + 1)
+        if value != CURRENT['solution'][incorrect_row][incorrect_col]
+    )
+
+    response = client.post('/check', json={'board': board})
+
+    assert response.status_code == 200
+    assert response.get_json() == {
+        'incorrect': [list(empty_cell), list(incorrect_cell)],
+        'completed': False,
+    }
+
+
 def test_move_rejects_incorrect_value_and_clears_player_cell():
     client = app.test_client()
     response = client.get('/new?difficulty=easy')
